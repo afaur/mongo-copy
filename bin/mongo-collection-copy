@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+
+require File.expand_path('../../lib/copier.rb', __FILE__)
+require 'optparse'
+
+options = {}
+
+parser = OptionParser.new do |opts|
+  opts.on "-s", "--source MONGOURL", "Source MongoDB connection URL" do |arg|
+    options[:source] = arg
+  end
+
+  opts.on "-d", "--destination MONGOURL", "Destination MongoDB connection URL" do |arg|
+    options[:destination] = arg
+  end
+
+  opts.on "-f", "--finder FINDER", "Finder strategy to use (max_id or enumerate)" do |arg|
+    options[:finder] = arg.to_sym
+  end
+end
+
+parser.banner = "mongo-collection-copy [options]"
+
+parser.on_tail "-h", "--help", "Show help" do
+  puts parser
+  exit 1
+end
+
+parser.parse(ARGV)
+options[:finder] ||= :max_id
+
+[:source, :destination, :collection].each do |required|
+  unless options.key?(required)
+    puts parser
+    puts ""
+    puts "Connection URLs can be given in the format:"
+    puts "  mongodb://[username:password@]host[:port]/database"
+    puts "For example, a local connection without authentication:"
+    puts "  mongodb://localhost:27017/test"
+    puts ""
+    puts "ERROR: --#{required} is a required argument."
+    exit 1
+  end
+end
+
+print "\nConnecting..."
+copier = MongoCollectionCopy::Copier.new(options[:source],
+                                         options[:destination],
+                                         options[:collection])
+puts "CONNECTED!"
+
+puts ""
+
+trap("INT") do
+  puts "Copy has been terminated!"
+  puts ""
+  StatsPrinter.print_stats(copier)
+  exit 0
+end
+
+copier.run
+puts "Copy has completed!"
+puts ""
+
