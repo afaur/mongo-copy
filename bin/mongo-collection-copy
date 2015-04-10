@@ -29,7 +29,7 @@ end
 parser.parse(ARGV)
 options[:finder] ||= :max_id
 
-[:source, :destination, :collection].each do |required|
+[:source, :destination].each do |required|
   unless options.key?(required)
     puts parser
     puts ""

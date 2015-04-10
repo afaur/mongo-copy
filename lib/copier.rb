@@ -3,8 +3,6 @@ require 'mongo'
 module MongoCollectionCopy
   class Copier
 
-    SPECIFIC_IDS = File.read("#{File.dirname(__FILE__)}/ids.txt}")
-
     def initialize(source, dest, coll_name)
       @source = Mongo::Connection.from_uri(source)
       @source_db = @source[source.split('/').last]
@@ -41,11 +39,7 @@ module MongoCollectionCopy
       @dest_coll_provider_pub    = @dest_db['provider_publications']
       @dest_coll_provider_vid    = @dest_db['provider_videos']
 
-      @specific_ids = SPECIFIC_IDS
-
-      puts @specific_ids
-
-      abort("BORK")
+      @specific_ids = IO.readlines("./ids.txt")
 
       #puts "Source:"
       #puts @source
